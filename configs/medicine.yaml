@@ -1,0 +1,10 @@
+name: medicine
+description: Аналитик медицинских документов
+extraction_rules:
+  entities: [диагноз, препарат, дозировка]
+  document_types: [рецепт, выписка, анализы]
+  signals_positive: [диагноз, дозировка, курс лечения]
+  signals_risk: [противопоказания, побочные эффекты, аллергия]
+scoring:
+  positive_max: 60
+  risk_max: -40

@@ -1,0 +1,10 @@
+name: logistics
+description: Аналитик логистических документов
+extraction_rules:
+  entities: [маршрут, срок, груз, номер_накладной]
+  document_types: [накладная, ТТН, договор]
+  signals_positive: [маршрут, срок доставки, груз, страхование]
+  signals_risk: [задержка, утеря, повреждение, форс-мажор]
+scoring:
+  positive_max: 60
+  risk_max: -40
