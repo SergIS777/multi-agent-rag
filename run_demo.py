@@ -1,4 +1,5 @@
 import time
+import uuid
 from app.graph import build_graph
 
 DOC = """
@@ -10,7 +11,10 @@ Setl Group открыла продажи нового ЖК "Южно-Примо�
 
 def main():
     graph = build_graph()
-    cfg = {"configurable": {"thread_id": "demo1"}}
+    # Каждый запуск — новая сессия (Uuid вместо хардкода)
+    thread_id = f"demo_{uuid.uuid4().hex[:8]}"
+    cfg = {"configurable": {"thread_id": thread_id}}
+    print(f"[SESSION] {thread_id}")
 
     print("=== 1. INGEST документа ===")
     r1 = graph.invoke({"document_text": DOC, "config_name": "realestate"}, config=cfg)
@@ -18,8 +22,13 @@ def main():
 
     print("=== 2. QUERY ===")
     t0 = time.time()
-    r2 = graph.invoke({"query": "Чем интересен объект? Какие риски?",
-                       "config_name": "realestate"}, config=cfg)
+    try:
+        r2 = graph.invoke({"query": "Чем интересен объект? Какие риски?",
+                           "config_name": "realestate"}, config=cfg)
+    except Exception as e:
+        print(f"[SYSTEM] LLM недоступен после 3 попыток: {type(e).__name__}. "
+              "Честный отказ — данные не выдуманы.")
+        return
     print("trace:", r2.get("trace_id"))
     print("score:", r2.get("score"), "| signals:", r2.get("extracted", {}).get("positive"))
     print("review_ok:", r2.get("review_ok"), "| tokens:", r2.get("token_cost"),

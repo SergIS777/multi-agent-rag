@@ -2,22 +2,23 @@ import sqlite3
 
 from langgraph.graph import StateGraph, START, END
 from langgraph.checkpoint.sqlite import SqliteSaver
+from langgraph.types import RetryPolicy
 
 from app.state import PlatformState
 from app import agents
 
-# --- Checkpointer: singleton, соединение живёт весь процесс (шаг 6 спеки) ---
 _checkpointer = None
+
+# Шаг 6 спеки: 3 попытки с backoff на LLM-нодах
+RETRY_LLM = RetryPolicy(max_attempts=3, initial_interval=1.0, backoff_factor=2.0)
 
 
 def get_checkpointer() -> SqliteSaver:
-    """SqliteSaver с персистентным файлом: состояние переживает перезапуск,
-    сбои можно replay-ить. Соединение открывается один раз."""
     global _checkpointer
     if _checkpointer is None:
         conn = sqlite3.connect("checkpoints.sqlite", check_same_thread=False)
         _checkpointer = SqliteSaver(conn)
-        _checkpointer.setup()  # создаёт таблицы, если их нет
+        _checkpointer.setup()
     return _checkpointer
 
 
@@ -37,9 +38,9 @@ def build_graph():
     g.add_node("ingestor", agents.ingestor)
     g.add_node("indexer", agents.indexer)
     g.add_node("retriever", agents.retriever)
-    g.add_node("extractor", agents.extractor)
-    g.add_node("answerer", agents.answerer)
-    g.add_node("summarizer", agents.summarizer)
+    g.add_node("extractor", agents.extractor)  # детерминированный — ретраи не нужны
+    g.add_node("answerer", agents.answerer, retry_policy=RETRY_LLM)
+    g.add_node("summarizer", agents.summarizer, retry_policy=RETRY_LLM)
     g.add_node("reviewer", agents.reviewer)
 
     g.add_edge(START, "guard")
