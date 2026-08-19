@@ -97,17 +97,27 @@ def extractor(state: dict) -> dict:
     score = max(0, min(100, score))
     return {"extracted": {"positive": pos, "risk": risk}, "score": score}
 
-# --- 6. ANSWERER (LLM-карточка с цитатами) ---
+# --- 6. ANSWERER (LLM-карточка с цитатами + cost control) ---
 def answerer(state: dict) -> dict:
     from app.llm import call_llm
     cfg = load_config(state.get("config_name", "realestate"))
+    limit = cfg.get("cost", {}).get("max_tokens_per_query", 4000)
+    spent = state.get("token_cost", 0)
+    if spent >= limit:
+        return {"answer": f"[COST] Превышен лимит токенов запроса ({spent}/{limit}). Запрос отклонён.",
+                "token_cost": spent, "cost_blocked": True}
     context = "\n---\n".join(f"[{i}] {c}" for i, c in enumerate(state.get("retrieved", [])))
     system = ("Ты аналитик рынка недвижимости Санкт-Петербурга. Отвечай СТРОГО по контексту, "
               "цитируй источники в формате [0], [1]. Если ответа в контексте нет — скажи прямо.")
     user = (f"Конфиг: {cfg['description']}\nКонтекст:\n{context}\n\n"
             f"Вопрос: {state.get('query', '')}\nАвтоскоринг: {state.get('score', 0)}/100")
     text, tokens = call_llm(system, user)
-    return {"answer": text, "token_cost": state.get("token_cost", 0) + tokens}
+    new_total = spent + tokens
+    if new_total > limit:
+        return {"answer": f"[COST] Лимит {limit} превышен (было бы {new_total}). Запрос отклонён.",
+                "token_cost": new_total, "cost_blocked": True}
+    return {"answer": text, "token_cost": new_total,
+            "cost_usd": round(new_total * 0.0000002, 6)}
 
 # --- 7. SUMMARIZER ---
 def summarizer(state: dict) -> dict:
@@ -116,10 +126,12 @@ def summarizer(state: dict) -> dict:
                             state.get("document_text", "")[:4000])
     return {"answer": text, "token_cost": state.get("token_cost", 0) + tokens}
 
-# --- 8. REVIEWER (ловит галлюцинации и fallback) ---
+# -# --- 8. REVIEWER (ловит галлюцинации и fallback) ---
 def reviewer(state: dict) -> dict:
     answer = state.get("answer", "")
     attempts = state.get("review_attempts", 0) + 1
+    if answer.startswith("[COST]"):
+        return {"review_ok": True, "review_attempts": attempts, "confidence": 0.0}
     ok = ("[FALLBACK]" not in answer) and len(answer) > 50
     return {"review_ok": ok, "review_attempts": attempts,
             "confidence": 80.0 if ok else 30.0}

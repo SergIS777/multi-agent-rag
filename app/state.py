@@ -1,21 +1,34 @@
 from typing import TypedDict
 
+
 class PlatformState(TypedDict, total=False):
-    # вход
-    document_text: str        # сырой текст документа
-    query: str                # вопрос пользователя
-    config_name: str          # какой бизнес-конфиг
-    # обработка
-    chunks: list              # чанки документа
-    retrieved: list           # релевантные чанки
-    extracted: dict           # извлечённые сущности/сигналы
-    score: int                # скоринг 0-100 (недвижимость)
-    answer: str               # ответ
-    citations: list           # цитаты (chunk_id)
-    confidence: float         # уверенность 0-100
-    review_ok: bool           # Reviewer пропустил
-    review_attempts: int      # попытки ревью
-    pii_blocked: bool         # DLP заблокировал запрос
-    # наблюдаемость
+    """Общая память графа: каждый агент читает и дописывает свои поля."""
+
+    # --- входы ---
+    document_text: str
+    query: str
+    config_name: str
+
+    # --- Guard (DLP) ---
+    pii_blocked: bool
     trace_id: str
-    token_cost: int           # суммарные токены
+
+    # --- Ingestor / Indexer ---
+    chunks: list
+
+    # --- Retriever / Extractor ---
+    retrieved: list
+    extracted: dict
+    score: int
+
+    # --- Answerer / Summarizer ---
+    answer: str
+    citations: list
+    token_cost: int
+    cost_usd: float
+    cost_blocked: bool
+
+    # --- Reviewer ---
+    review_ok: bool
+    review_attempts: int
+    confidence: float

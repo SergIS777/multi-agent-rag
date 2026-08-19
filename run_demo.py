@@ -32,6 +32,7 @@ def main():
     print("trace:", r2.get("trace_id"))
     print("score:", r2.get("score"), "| signals:", r2.get("extracted", {}).get("positive"))
     print("review_ok:", r2.get("review_ok"), "| tokens:", r2.get("token_cost"),
+          "| cost: $%.6f" % r2.get("cost_usd", 0),
           "| %.1fs" % (time.time() - t0))
     print("--- ANSWER ---")
     print(r2.get("answer", "")[:800])

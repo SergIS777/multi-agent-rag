@@ -12,3 +12,6 @@ scoring:
   risk_max: -40
 
 human_review: true
+
+cost:
+  max_tokens_per_query: 4000

@@ -1,0 +1,15 @@
+name: cost_test
+description: Тестовый конфиг с лимитом 100 токенов
+
+extraction_rules:
+  entities: [объект]
+  document_types: [тест]
+  signals_positive: [продажа]
+  signals_risk: [риск]
+
+scoring:
+  positive_max: 60
+  risk_max: -40
+
+cost:
+  max_tokens_per_query: 100
