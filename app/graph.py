@@ -1,8 +1,24 @@
+import sqlite3
+
 from langgraph.graph import StateGraph, START, END
-from langgraph.checkpoint.memory import InMemorySaver
+from langgraph.checkpoint.sqlite import SqliteSaver
 
 from app.state import PlatformState
 from app import agents
+
+# --- Checkpointer: singleton, соединение живёт весь процесс (шаг 6 спеки) ---
+_checkpointer = None
+
+
+def get_checkpointer() -> SqliteSaver:
+    """SqliteSaver с персистентным файлом: состояние переживает перезапуск,
+    сбои можно replay-ить. Соединение открывается один раз."""
+    global _checkpointer
+    if _checkpointer is None:
+        conn = sqlite3.connect("checkpoints.sqlite", check_same_thread=False)
+        _checkpointer = SqliteSaver(conn)
+        _checkpointer.setup()  # создаёт таблицы, если их нет
+    return _checkpointer
 
 
 def review_router(state: dict) -> str:
@@ -47,4 +63,4 @@ def build_graph():
     # summarize-ветка
     g.add_edge("summarizer", "reviewer")
 
-    return g.compile(checkpointer=InMemorySaver())
+    return g.compile(checkpointer=get_checkpointer())
