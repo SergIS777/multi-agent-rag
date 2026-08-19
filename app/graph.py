@@ -7,6 +7,7 @@ from langgraph.types import RetryPolicy
 from app.state import PlatformState
 from app import agents
 from app.config_loader import load_config
+from app.observability import traced
 
 _checkpointer = None
 
@@ -40,15 +41,16 @@ def needs_human_review(state: dict) -> str:
 def build_graph():
     g = StateGraph(PlatformState)
 
-    g.add_node("guard", agents.guard)
-    g.add_node("ingestor", agents.ingestor)
-    g.add_node("indexer", agents.indexer)
-    g.add_node("retriever", agents.retriever)
-    g.add_node("extractor", agents.extractor)
-    g.add_node("answerer", agents.answerer, retry_policy=RETRY_LLM)
-    g.add_node("summarizer", agents.summarizer, retry_policy=RETRY_LLM)
-    g.add_node("reviewer", agents.reviewer)
-    g.add_node("human_review", agents.human_review)
+    # Шаг 7: все ноды обёрнуты в JSON-трассировку
+    g.add_node("guard", traced("guard")(agents.guard))
+    g.add_node("ingestor", traced("ingestor")(agents.ingestor))
+    g.add_node("indexer", traced("indexer")(agents.indexer))
+    g.add_node("retriever", traced("retriever")(agents.retriever))
+    g.add_node("extractor", traced("extractor")(agents.extractor))
+    g.add_node("answerer", traced("answerer")(agents.answerer), retry_policy=RETRY_LLM)
+    g.add_node("summarizer", traced("summarizer")(agents.summarizer), retry_policy=RETRY_LLM)
+    g.add_node("reviewer", traced("reviewer")(agents.reviewer))
+    g.add_node("human_review", traced("human_review")(agents.human_review))
 
     g.add_edge(START, "guard")
     g.add_conditional_edges("guard", agents.route,
