@@ -131,3 +131,19 @@ def route(state: dict) -> str:
     if state.get("query"):
         return "query"
     return "ingest"
+
+# --- 10. HUMAN-IN-THE-LOOP (для law/medicine) ---
+def human_review(state: dict) -> dict:
+    """Остановка графа для подтверждения человеком (config-driven)."""
+    from langgraph.types import interrupt
+    answer = state.get("answer", "")
+    decision = interrupt({
+        "message": "Требуется подтверждение ответа",
+        "answer_preview": answer[:500],
+        "score": state.get("score", 0),
+        "signals": state.get("extracted", {})
+    })
+    # decision = {"action": "approve"} или {"action": "reject"}
+    if decision.get("action") == "approve":
+        return {"review_ok": True, "confidence": 95.0}
+    return {"review_ok": False, "answer": "Ответ отклонён пользователем."}

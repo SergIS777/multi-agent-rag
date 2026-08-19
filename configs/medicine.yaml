@@ -8,3 +8,4 @@ extraction_rules:
 scoring:
   positive_max: 60
   risk_max: -40
+  human_review: true

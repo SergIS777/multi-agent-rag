@@ -1,10 +1,14 @@
 name: law
 description: Аналитик юридических документов
+
 extraction_rules:
   entities: [сумма, дата, сторона, штраф]
   document_types: [договор, претензия, иск]
   signals_positive: [неустойка, срок оплаты, стороны, ответственность, арбитражный суд]
   signals_risk: [расторжение, штраф, убытки, односторонний порядок]
+
 scoring:
   positive_max: 60
   risk_max: -40
+
+human_review: true
