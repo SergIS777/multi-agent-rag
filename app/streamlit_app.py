@@ -21,7 +21,14 @@ for _k in ("GROQ_API_KEY", "LOCAL_PROXY"):
             pass
 
 API = os.getenv("API_URL", "http://127.0.0.1:8000")
-CONFIGS = ["realestate", "law", "logistics", "medicine"]
+
+# Русские подписи -> технические имена конфигов
+CONFIG_LABELS = {
+    "🏢 Недвижимость": "realestate",
+    "⚖️ Юристы": "law",
+    "🚛 Логистика": "logistics",
+    "🏥 Медицина": "medicine",
+}
 
 st.set_page_config(page_title="Multi-Agent RAG Platform", layout="wide")
 st.title("🤖 Multi-Agent RAG Platform")
@@ -145,7 +152,8 @@ def uuid4() -> str:
     return uuid.uuid4().hex[:8]
 
 
-config = st.sidebar.selectbox("Бизнес-конфиг", CONFIGS)
+label = st.sidebar.selectbox("Бизнес-конфиг", list(CONFIG_LABELS.keys()))
+config = CONFIG_LABELS[label]
 st.sidebar.info(f"Режим домена: {'автоматический' if config == 'realestate' else 'с подтверждением'}")
 
 col1, col2 = st.columns([3, 2])
