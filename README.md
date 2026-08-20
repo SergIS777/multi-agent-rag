@@ -1,5 +1,7 @@
 # Multi-Agent RAG Platform
 
+![cover](docs/cover.png)
+
 Платформа анализа документов на LangGraph: загрузил документ → задал вопрос →
 получил проверенный ответ с цитатами, скорингом и стоимостью.
 Бизнес-логика — в YAML-конфигах, код не меняется. Новый домен — 1 день.
@@ -17,6 +19,20 @@ https://multi-agent-rag777.streamlit.app/
 - 💰 Cost control: лимит токенов на запрос, стоимость в $
 - 🔭 Наблюдаемость: trace_id + JSON-лог цепочки (нода → latency → токены)
 - 🔁 Надёжность: RetryPolicy (3 попытки, backoff), SqliteSaver
+
+## Как работает (расшифровка схемы)
+
+| Нода на картинке | Что делает |
+|---|---|
+| DOCUMENT INPUT | принимает txt/md/pdf/docx; сканы → Tesseract OCR |
+| GUARD DLP | блокирует ПИИ (телефоны +7/8(, email, СНИЛС, ИНН, паспорт) ДО вызова LLM |
+| INDEXER | чанки 600 символов (overlap 100) → эмбеддинги fastembed → ChromaDB |
+| RETRIEVER | векторный поиск top-3 релевантных чанков |
+| EXTRACTOR | детерминированный скоринг из YAML: сигналы × веса, без LLM — предсказуемо и бесплатно |
+| ANSWERER LLM | ответ СТРОГО по контексту с цитатами [0][1]; лимит токенов на запрос |
+| REVIEWER | анти-галлюцинации: отклоняет fallback и пустые ответы, ≤ 2 доработок |
+| HUMAN APPROVAL | interrupt/resume: юристы/логистика/медицина — человек подтверждает ответ кнопкой |
+| ANSWER | ответ + метрики: score, tokens, cost $, confidence, trace_id |
 
 ## Архитектура
 
@@ -63,9 +79,10 @@ python run_demo.py                  # или консольное демо
 ```
 app/            агенты-ноды, граф, state, llm-слой, observability, api, витрина
 configs/        4 бизнес-конфига + cost_test (YAML)
-docs/           decisions.md — ключевые решения и уроки
+docs/           decisions.md + cover.png (обложка)
+tests/          pytest-юниты (guard/extractor/cost)
 run_demo.py     консольное демо
-test_*.py       проверки (law human-in-the-loop, cost, api)
+smoke_api.py    живая проверка API (нужен запущенный сервер)
 ```
 
 ## Статус
