@@ -70,9 +70,11 @@ def query(req: QueryRequest):
             "score": r.get("score"),
             "extracted": r.get("extracted"),
             "review_ok": r.get("review_ok"),
+            "review_attempts": r.get("review_attempts"),  # ← ШАГ 12: полировка
             "confidence": r.get("confidence"),
             "token_cost": r.get("token_cost"),
-            "cost_usd": r.get("cost_usd")}
+            "cost_usd": r.get("cost_usd"),
+            "cost_blocked": r.get("cost_blocked")}
 
 
 @app.post("/resume")
@@ -84,4 +86,8 @@ def resume(req: ResumeRequest):
     return {"status": "done",
             "answer": r.get("answer"),
             "review_ok": r.get("review_ok"),
-            "token_cost": r.get("token_cost")}
+            "review_attempts": r.get("review_attempts"),  # ← ШАГ 12: полировка
+            "confidence": r.get("confidence"),
+            "token_cost": r.get("token_cost"),
+            "cost_usd": r.get("cost_usd"),
+            "cost_blocked": r.get("cost_blocked")}
