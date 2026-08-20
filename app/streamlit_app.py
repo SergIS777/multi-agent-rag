@@ -1,5 +1,12 @@
 import io
 import os
+import sys
+from pathlib import Path
+
+# Бутстрап: корень репо в sys.path (иначе на Streamlit Cloud не найдётся пакет app)
+_ROOT = Path(__file__).resolve().parent.parent
+if str(_ROOT) not in sys.path:
+    sys.path.insert(0, str(_ROOT))
 
 import streamlit as st
 import httpx
@@ -165,10 +172,13 @@ if st.button("🚀 Получить ответ", type="primary"):
     if not doc.strip() or not query.strip():
         st.error("Заполни документ и вопрос")
     else:
-        with st.spinner("Загрузка → поиск → генерация ответа..."):
-            ing = run_ingest(doc, config)
-            q = run_query(query, config, ing["thread_id"])
-        st.session_state.result = q
+        try:
+            with st.spinner("Загрузка → поиск → генерация ответа..."):
+                ing = run_ingest(doc, config)
+                q = run_query(query, config, ing["thread_id"])
+            st.session_state.result = q
+        except Exception as e:
+            st.error(f"Ошибка конвейера: {type(e).__name__}: {e}")
 
 if "result" in st.session_state:
     r = st.session_state.result
