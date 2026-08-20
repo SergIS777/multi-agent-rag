@@ -1,0 +1,13 @@
+streamlit
+langgraph
+langgraph-checkpoint-sqlite
+langchain-core
+fastembed
+chromadb
+httpx
+pyyaml
+pypdf
+python-docx
+PyMuPDF
+Pillow
+pytesseract
