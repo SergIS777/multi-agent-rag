@@ -2,10 +2,14 @@ import re
 import uuid
 from app.config_loader import load_config
 
+# Шаг 9.2-fix: телефон ТОЛЬКО с явным префиксом +7 / 8( — иначе размеры
+# с чертежей (1530 3020 2570...) дают ложные срабатывания DLP
 PII_PATTERNS = [
-    r"\+?\d[\d\s\-\(\)]{10,15}",
+    r"(?:\+7|8)[\s\-]?\(?\d{3}\)?[\s\-]?\d{3}[\s\-]?\d{2}[\s\-]?\d{2}",
     r"\b[\w.\-]+@[\w\-]+\.\w{2,}\b",
-    r"\bСНИЛС\b", r"\bИНН\b",
+    r"\bСНИЛС\b",
+    r"\bИНН\s?\d{10,12}\b",
+    r"\bпаспорт\s?(?:серии\s?)?\d{2}\s?\d{2}\b",
 ]
 
 _model = None
@@ -126,7 +130,7 @@ def summarizer(state: dict) -> dict:
                             state.get("document_text", "")[:4000])
     return {"answer": text, "token_cost": state.get("token_cost", 0) + tokens}
 
-# -# --- 8. REVIEWER (ловит галлюцинации и fallback) ---
+# --- 8. REVIEWER (ловит галлюцинации и fallback) ---
 def reviewer(state: dict) -> dict:
     answer = state.get("answer", "")
     attempts = state.get("review_attempts", 0) + 1
