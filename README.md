@@ -1,26 +1,69 @@
 # Multi-Agent RAG Platform
 
-LangGraph-based platform with 4 business configs: real estate, law, logistics, medicine.
+Платформа анализа документов на LangGraph: загрузил документ → задал вопрос →
+получил проверенный ответ с цитатами, скорингом и стоимостью.
+Бизнес-логика — в YAML-конфигах, код не меняется. Новый домен — 1 день.
 
-## Features
-- 10 agents: Guard (DLP), Ingestor, Indexer, Retriever, Extractor, Summarizer, Answerer, Reviewer, Orchestrator, Watchdog
-- Config-driven: add new business domain in 1 day
-- Graceful degradation: LLM fallback → manual review
-- Cost control: token tracking per query
-- Self-hosted: no data leaves your infrastructure
+## Возможности
+- 📄 Ввод: txt / md / pdf (включая сканы через OCR) / docx
+- 🤖 9 агентов-нод: Guard (DLP), Ingestor, Indexer, Retriever, Extractor,
+  Answerer, Summarizer, Reviewer, Human-in-the-loop
+- 🏢 4 конфига: realestate (автомат), law / logistics / medicine (подтверждение человеком)
+- 🛡️ Анти-галлюцинации: Reviewer-цикл (≤ 2), честный fallback
+- 💰 Cost control: лимит токенов на запрос, стоимость в $
+- 🔭 Наблюдаемость: trace_id + JSON-лог цепочки (нода → latency → токены)
+- 🔁 Надёжность: RetryPolicy (3 попытки, backoff), SqliteSaver
 
-## Quick Start
+## Архитектура
+
+```mermaid
+graph TD
+    START --> guard
+    guard -->|ingest| ingestor --> indexer --> END
+    guard -->|query| retriever --> extractor --> answerer
+    guard -->|end| END
+    answerer -->|human| human_review --> END
+    answerer -->|reviewer| reviewer
+    reviewer -->|retry| answerer
+    reviewer -->|end| END
+    summarizer --> reviewer
+```
+
+## Быстрый старт
+
+Установка:
+```powershell
+pip install langgraph langgraph-checkpoint-sqlite langchain-core fastembed chromadb httpx pyyaml fastapi uvicorn streamlit pypdf python-docx pytesseract PyMuPDF Pillow
+```
+
+Переменные окружения — **PowerShell (Windows)**:
+```powershell
+$env:GROQ_API_KEY="gsk_..."
+$env:LOCAL_PROXY="http://user:pass@127.0.0.1:3067"   # только если нужен прокси
+```
+
+Переменные окружения — **bash (Linux/Mac)**:
 ```bash
-pip install langgraph langchain-core fastembed chromadb httpx pyyaml
-export GROQ_API_KEY="your_key"
-python run_demo.py
+export GROQ_API_KEY="gsk_..."
+export LOCAL_PROXY="http://user:pass@127.0.0.1:3067"  # только если нужен прокси
+```
 
-## Architecture
-Engine: LangGraph (state graph)
-Embeddings: fastembed (onnxruntime, no torch)
-LLM: Groq API (GPT-OSS 20B / 120B)
-Vector DB: ChromaDB (ephemeral for demo)
+Запуск (два окна + демо):
+```powershell
+uvicorn app.api:app --port 8000     # окно 1: API
+streamlit run app/streamlit_app.py  # окно 2: витрина
+python run_demo.py                  # или консольное демо
+```
 
-## Status
-✅ Working demo with real estate config
-🚧 Law/logistics/medicine configs ready
+## Структура
+```
+app/            агенты-ноды, граф, state, llm-слой, observability, api, витрина
+configs/        4 бизнес-конфига + cost_test (YAML)
+docs/           decisions.md — ключевые решения и уроки
+run_demo.py     консольное демо
+test_*.py       проверки (law human-in-the-loop, cost, api)
+```
+
+## Статус
+✅ Ядро работает (realestate/law проверены живыми прогонами)
+🚧 Growth points: персистентная векторная БД, Langfuse, docker/k8s — см. docs/decisions.md
