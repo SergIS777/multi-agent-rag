@@ -1,3 +1,4 @@
+import os
 import sqlite3
 
 from langgraph.graph import StateGraph, START, END
@@ -17,6 +18,7 @@ RETRY_LLM = RetryPolicy(max_attempts=3, initial_interval=1.0, backoff_factor=2.0
 def get_checkpointer() -> SqliteSaver:
     global _checkpointer
     if _checkpointer is None:
+        os.makedirs("data", exist_ok=True)
         conn = sqlite3.connect("data/checkpoints.sqlite", check_same_thread=False)
         _checkpointer = SqliteSaver(conn)
         _checkpointer.setup()
