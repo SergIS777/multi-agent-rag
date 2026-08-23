@@ -5,3 +5,4 @@ __pycache__/
 .env
 trace_log.jsonl
 .pytest_cache/
+data/

@@ -37,7 +37,7 @@ def _get_collection():
     global _collection
     if _collection is None:
         import chromadb
-        client = chromadb.EphemeralClient()
+        client = chromadb.PersistentClient(path="data/chroma_db")
         _collection = client.get_or_create_collection("docs")
     return _collection
 
