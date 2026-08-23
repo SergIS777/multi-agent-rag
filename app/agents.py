@@ -1,3 +1,4 @@
+import os
 import re
 import uuid
 from app.config_loader import load_config
@@ -37,6 +38,7 @@ def _get_collection():
     global _collection
     if _collection is None:
         import chromadb
+        os.makedirs("data/chroma_db", exist_ok=True)
         client = chromadb.PersistentClient(path="data/chroma_db")
         _collection = client.get_or_create_collection("docs")
     return _collection
