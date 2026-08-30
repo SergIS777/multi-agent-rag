@@ -1,6 +1,6 @@
 # Multi-Agent RAG Platform
 
-![License](https://img.shields.io/github/license/SergIS777/multi-agent-rag) ![Release](https://img.shields.io/github/v/release/SergIS777/multi-agent-rag) ![Tests](https://img.shields.io/badge/tests-8%20passing-brightgreen)
+![License](https://img.shields.io/github/license/SergIS777/multi-agent-rag) ![Release](https://img.shields.io/github/v/release/SergIS777/multi-agent-rag) ![Tests](https://github.com/SergIS777/multi-agent-rag/actions/workflows/tests.yml/badge.svg)
 
 ![cover](docs/cover.png)
 
