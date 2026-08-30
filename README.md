@@ -1,5 +1,7 @@
 # Multi-Agent RAG Platform
 
+![License](https://img.shields.io/github/license/SergIS777/multi-agent-rag) ![Release](https://img.shields.io/github/v/release/SergIS777/multi-agent-rag) ![Tests](https://img.shields.io/badge/tests-8%20passing-brightgreen)
+
 ![cover](docs/cover.png)
 
 Платформа анализа документов на LangGraph: загрузил документ → задал вопрос →
@@ -9,6 +11,8 @@
 ## ДАШБОРД
 
 https://multi-agent-rag777.streamlit.app/
+
+![Живой прогон: документ → ответ с цитатами, cost и confidence](docs/demo-answer.png)
 
 ## Возможности
 - 📄 Ввод: txt / md / pdf (включая сканы через OCR) / docx
