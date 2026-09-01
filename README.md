@@ -1,6 +1,14 @@
+<div align="center">
+
 # Multi-Agent RAG Platform
 
+</div>
+
+---
+
 ![License](https://img.shields.io/github/license/SergIS777/multi-agent-rag) ![Release](https://img.shields.io/github/v/release/SergIS777/multi-agent-rag) ![Tests](https://github.com/SergIS777/multi-agent-rag/actions/workflows/tests.yml/badge.svg)
+
+---
 
 ![cover](docs/cover.png)
 
@@ -8,11 +16,15 @@
 получил проверенный ответ с цитатами, скорингом и стоимостью.
 Бизнес-логика — в YAML-конфигах, код не меняется. Новый домен — 1 день.
 
+---
+
 ## ДАШБОРД
 
 https://multi-agent-rag777.streamlit.app/
 
 ![Живой прогон: документ → ответ с цитатами, cost и confidence](docs/demo-answer.png)
+
+---
 
 ## Возможности
 - 🤖 9 агентов с анти-галлюцинациями (Reviewer-цикл ≤ 2)
@@ -20,6 +32,8 @@ https://multi-agent-rag777.streamlit.app/
 - 🛡️ DLP до LLM: блокирует ПИИ до отправки в модель
 - 💰 Cost control: лимит токенов, стоимость в $ за запрос
 - 🔭 Наблюдаемость: trace_id + JSON-лог цепочки
+
+---
 
 ## Быстрый старт
 
@@ -46,3 +60,4 @@ uvicorn app.api:app --port 8000     # окно 1: API
 streamlit run app/streamlit_app.py  # окно 2: витрина
 python run_demo.py                  # или консольное демо
 ```
+---
